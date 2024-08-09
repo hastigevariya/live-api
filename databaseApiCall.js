@@ -88,21 +88,21 @@ exports.login = (req, res) => {
 };
 
 exports.updateDetails = (req, res) => {
-    const { id } = req.params;
+    const { user_id } = req.params;
     const { first_name, last_name, email, phone_number } = req.body;
    
-    connection.query('SELECT * FROM users WHERE id = ?', [id], (err, results) => {
+    connection.query('SELECT * FROM users WHERE user_id = ?', [user_id], (err, results) => {
         if (err) {
             console.error('Database error during ID check:', err); // Log detailed error
             return res.json({ message: 'Database error' });
         }
 
         if (results.length === 0) {
-            return res.json({ message: 'Invalid user ID' });
+            return res.json({ message: 'Invalid user_id' });
         }
     
-        const query = 'UPDATE users SET first_name = ?, last_name = ?, email = ?, phone_number = ? WHERE id = ?';
-        connection.query(query, [first_name, last_name, email, phone_number, id], (err, results) => {
+        const query = 'UPDATE users SET first_name = ?, last_name = ?, email = ?, phone_number = ? WHERE user_id = ?';
+        connection.query(query, [first_name, last_name, email, phone_number, user_id], (err, results) => {
             if (err) {
                 console.error('Database error during update:', err); // Log detailed error
                 return res.json({ message: 'Database error' });
@@ -161,11 +161,13 @@ exports.changePassword = (req, res) => {
 };
 
 
-exports.insertBusiness = (req, res) => {
-    const { business_name, userid } = req.body;
 
-    const query = 'INSERT INTO business (business_name, userid) VALUES (?, ?)';
-    connection.query(query, [business_name, userid], (err, results) => {
+
+exports.insertBusiness = (req, res) => {
+    const { business_name, user_id } = req.body;
+
+    const query = 'INSERT INTO business (business_name, user_id) VALUES (?, ?)';
+    connection.query(query, [business_name, user_id], (err, results) => {
         if (err) {
             console.error('Database error during insertion:', err); // Log detailed error
             return res.json({ message: 'Database error' });
@@ -175,11 +177,11 @@ exports.insertBusiness = (req, res) => {
 };
 
 exports.updateBusiness = (req, res) => {
-    const { business_id } = req.params;
-    const { business_name, userid } = req.body;
+    const {bid} = req.params;
+    const { business_name, user_id} = req.body;
 
-    const query = 'UPDATE business SET business_name = ?, userid = ? WHERE business_id = ?';
-    connection.query(query, [business_name, userid, business_id], (err, results) => {
+    const query = 'UPDATE business SET business_name = ?, user_id = ? WHERE bid = ?';
+    connection.query(query, [business_name, user_id, bid], (err, results) => {
         if (err) {
             console.error('Database error during update:', err); // Log detailed error
             return res.json({ message: 'Database error' });
@@ -189,10 +191,10 @@ exports.updateBusiness = (req, res) => {
 };
 
 exports.deleteBusiness = (req, res) => {
-    const { business_id } = req.params;
+    const { bid } = req.params;
 
-    const query = 'DELETE FROM business WHERE business_id = ?';
-    connection.query(query, [business_id], (err, results) => {
+    const query = 'DELETE FROM business WHERE bid = ?';
+    connection.query(query, [bid], (err, results) => {
         if (err) {
             console.error('Database error during deletion:', err); // Log detailed error
             return res.json({ message: 'Database error' });
@@ -203,11 +205,12 @@ exports.deleteBusiness = (req, res) => {
 
 
 
-exports.insertBusinessCategory = (req, res) => {
-    const { category_name, business_id, userid, category_type } = req.body;
 
-    const query = 'INSERT INTO business_category (category_name, business_id, userid, category_type) VALUES (?, ?, ?, ?)';
-    connection.query(query, [category_name, business_id, userid, category_type], (err, results) => {
+exports.insertBusinessCategory = (req, res) => {
+    const { category_name, bid, user_id, category_type } = req.body;
+
+    const query = 'INSERT INTO businesscategory (category_name, bid, user_id, category_type) VALUES (?, ?, ?, ?)';
+    connection.query(query, [category_name, bid, user_id, category_type], (err, results) => {
         if (err) {
             console.error('Database error during insertion:', err); // Log detailed error
             return res.json({ message: 'Database error' });
@@ -215,13 +218,12 @@ exports.insertBusinessCategory = (req, res) => {
         res.json({ message: 'Business category inserted successfully', category_id: results.insertId });
     });
 };
-
 exports.updateBusinessCategory = (req, res) => {
-    const { category_id } = req.params;
-    const { category_name, business_id, userid, category_type } = req.body;
+    const { cid } = req.params;
+    const { category_name, bid, user_id, category_type } = req.body;
 
-    const query = 'UPDATE business_category SET category_name = ?, business_id = ?, userid = ?, category_type = ? WHERE category_id = ?';
-    connection.query(query, [category_name, business_id, userid, category_type, category_id], (err, results) => {
+    const query = 'UPDATE businesscategory SET category_name = ?, bid = ?, user_id = ?, category_type = ? WHERE cid = ?';
+    connection.query(query, [category_name, bid, user_id, category_type, cid], (err, results) => {
         if (err) {
             console.error('Database error during update:', err); // Log detailed error
             return res.json({ message: 'Database error' });
@@ -231,15 +233,104 @@ exports.updateBusinessCategory = (req, res) => {
 };
 
 exports.deleteBusinessCategory = (req, res) => {
-    const { category_id } = req.params;
+    const { cid } = req.params;
 
-    const query = 'DELETE FROM business_category WHERE category_id = ?';
-    connection.query(query, [category_id], (err, results) => {
+    const query = 'DELETE FROM businesscategory WHERE cid = ?';
+    connection.query(query, [cid], (err, results) => {
         if (err) {
             console.error('Database error during deletion:', err); // Log detailed error
             return res.json({ message: 'Database error' });
         }
         res.json({ message: 'Business category deleted successfully' });
+    });
+};
+
+
+
+exports.insertTransaction = (req, res) => {
+    const { bid, cid, user_id, date, remark, amount, category_type } = req.body;
+
+    const query = 'INSERT INTO transection (bid, cid, user_id, date, remark, amount, category_type) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    connection.query(query, [bid, cid, user_id, date, remark, amount, category_type], (err, results) => {
+        if (err) {
+            console.error('Database error during insertion:', err); // Log detailed error
+            return res.json({ message: 'Database error' });
+        }
+        res.json({ message: 'Transaction inserted successfully', transection_id: results.insertId });
+    });
+};
+
+exports.updateTransaction = (req, res) => {
+    const { transection_id } = req.params;
+    const { bid, cid, user_id, date, remark, amount, category_type } = req.body;
+
+    const query = 'UPDATE transection SET bid = ?, cid = ?, user_id = ?, date = ?, remark = ?, amount = ?, category_type = ? WHERE transection_id = ?';
+    connection.query(query, [bid, cid, user_id, date, remark, amount, category_type, transection_id], (err, results) => {
+        if (err) {
+            console.error('Database error during update:', err); // Log detailed error
+            return res.json({ message: 'Database error' });
+        }
+        res.json({ message: 'Transaction updated successfully' });
+    });
+};
+
+exports.deleteTransaction = (req, res) => {
+    const { transection_id } = req.params;
+
+    const query = 'DELETE FROM transection WHERE transection_id = ?';
+    connection.query(query, [transection_id], (err, results) => {
+        if (err) {
+            console.error('Database error during deletion:', err); // Log detailed error
+            return res.json({ message: 'Database error' });
+        }
+        res.json({ message: 'Transaction deleted successfully' });
+    });
+};
+
+
+exports.getTransactions = (req, res) => {
+    const { bid } = req.query;
+
+    let query = 'SELECT * FROM transection';
+    const params = [];
+
+    if (bid) {
+        query += ' WHERE bid = ?';
+        params.push(bid);
+    }
+
+    connection.query(query, params, (err, results) => {
+        if (err) {
+            console.error('Database error during retrieval:', err); // Log detailed error
+            return res.json({ message: 'Database error' });
+        }
+
+        if (bid) {
+            const queryYearly = `
+                SELECT 
+                    YEAR(date) AS year,
+                    SUM(CASE WHEN category_type = 'income' THEN amount ELSE 0 END) AS total_income,
+                    SUM(CASE WHEN category_type = 'expense' THEN amount ELSE 0 END) AS total_expense,
+                    SUM(CASE WHEN category_type = 'income' THEN amount ELSE 0 END) - 
+                    SUM(CASE WHEN category_type = 'expense' THEN amount ELSE 0 END) AS net_balance
+                FROM transection
+                WHERE bid = ?
+                GROUP BY YEAR(date)
+            `;
+            connection.query(queryYearly, [bid], (err, yearlyResults) => {
+                if (err) {
+                    console.error('Database error during yearly summary:', err); // Log detailed error
+                    return res.json({ message: 'Database error' });
+                }
+                res.json({
+                    business_name: results.length > 0 ? results[0].business_name : null,
+                    transactions: results,
+                    yearly_summary: yearlyResults
+                });
+            });
+        } else {
+            res.json(results);
+        }
     });
 };
 
@@ -320,3 +411,19 @@ exports.deleteBusinessCategory = (req, res) => {
 // 3) make business category tabel 
 // inser row category id cateegoryb name buisness id (fk) userid (fk) category type 
 // make inser update delet api 
+
+// 4) transection tid bid cid date remark amount ctype 
+// in u del
+// amount bid  year wise transection i out net balace  (if pas bid then  else all ) (bname in out net balance)
+// income  out (total transection by year ) ex (slary by year)  (category pas ) 
+// expence
+
+
+
+// 1) if i pass bid then it filter record via else it shows all record that avalibe in tabel
+// 2) in if part  shows me year wise transection of that business  so first i get business name then business total income and expence year wise  and also right now current balance 
+
+// git add *
+// git commit -m "second commit"
+// git push -u origin main
+
